@@ -30,7 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(_button, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
 
-    _socket.connectToHost(QHostAddress("127.0.0.1"), 4242);
+    // _socket.connectToHost(QHostAddress("127.0.0.1"), 4242);
+    _socket.connectToHost(QHostAddress::Broadcast, 4242);
+
     connect(&_socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 
     setWindowTitle("TCP-client");
@@ -43,11 +45,7 @@ MainWindow::~MainWindow()
 void MainWindow::onReadyRead()
 {
     QByteArray datas = _socket.readAll();
-    //qDebug() << datas;
-
     _textEdit->append(datas);
-
-//    _socket.write(QByteArray("ok !\n"));
 }
 
 void MainWindow::onButtonClicked()
@@ -59,6 +57,11 @@ void MainWindow::onButtonClicked()
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QByteArray bytes = file.readAll();
-        _socket.write(bytes);
+        if (_socket.state() == QAbstractSocket::ConnectedState)
+            _socket.write(bytes);
+        else
+            // _socket.connectToHost(QHostAddress("127.0.0.1"), 4242);
+            _socket.connectToHost(QHostAddress::Broadcast, 4242);
+
     }
 }
