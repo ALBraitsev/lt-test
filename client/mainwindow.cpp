@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QFileDialog>
 #include <QFile>
+#include <QNetworkAddressEntry>
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent),
@@ -30,8 +31,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(_button, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
 
-    // _socket.connectToHost(QHostAddress("127.0.0.1"), 4242);
-    _socket.connectToHost(QHostAddress::Broadcast, 4242);
+
+    const QHostAddress &localhost = QHostAddress(QHostAddress::LocalHost);
+    for (const QHostAddress &address: QNetworkInterface::allAddresses()) {
+        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
+             qDebug() << address.toString();
+    }
+
+    _socket.connectToHost(QHostAddress("192.168.0.101"), 4242);
+    //_socket.connectToHost(QHostAddress::Broadcast, 4242);
 
     connect(&_socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 
@@ -40,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    _socket.disconnectFromHost();
 }
 
 void MainWindow::onReadyRead()
