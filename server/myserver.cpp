@@ -1,31 +1,11 @@
-#include "mainwindow.h"
-
-///////////////////////////////////////////////////////////////////////////
-#include <sstream>
-std::ostream& operator<< (std::ostream& os, const Algorithm::CalculateResult& v) {
-    std::map<size_t, size_t> ordered(v.begin(), v.end());
-    for (auto& p : ordered) {
-        os << p.first << "=" << p.second << std::endl;
-    }
-    return os;
-}
-
-QByteArray DataHandler::getReport(const QByteArray& ba) const {
-    std::stringstream report;
-    for (const auto& ap : m_algorithmManager.getAlgoritms()) {
-        report << ap.first << std::endl;
-        report << (*ap.second)(ba.data()) << std::endl;
-    }
-    return QByteArray::fromStdString(report.str());
-}
-
-///////////////////////////////////////////////////////////////////////////
+#include "myserver.h"
 
 #include <QDebug>
 #include <QHostAddress>
 #include <QAbstractSocket>
+#include <QSqlQuery>
 
-MainWindow::MainWindow(QObject *parent) :
+MyServer::MyServer(QObject *parent) :
     QObject(parent),
     _server(this),
     _dataHanler({AlgorithmPtr(new NumberCharacters()), AlgorithmPtr(new WordLengths())})
@@ -33,29 +13,32 @@ MainWindow::MainWindow(QObject *parent) :
     _server.listen(QHostAddress::Any, 4242);
     connect(&_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 
+    _database = QSqlDatabase::addDatabase("QSQLITE");
+    _database.setDatabaseName("l-telecom.db");
+    _database.open();
+    _database.exec("create table statistics(time text, address text, bytes integer);");
+
     qDebug() << "TCP-server running";
 }
 
-MainWindow::~MainWindow()
+MyServer::~MyServer()
 {
     qDebug() << "TCP-server closed";
+    _database.close();
+    _server.close();
 }
 
-void MainWindow::onNewConnection()
+void MyServer::onNewConnection()
 {
    QTcpSocket *clientSocket = _server.nextPendingConnection();
    connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
    connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
 
     _sockets.push_back(clientSocket);
-    // for (QTcpSocket* socket : _sockets) {
-    //     socket->write(QByteArray::fromStdString(clientSocket->peerAddress().toString().toStdString() + " connected to server !\n"));
-    // }
-
     clientSocket->write(QByteArray::fromStdString(clientSocket->peerAddress().toString().toStdString() + " connected to server !\n"));
 }
 
-void MainWindow::onSocketStateChanged(QAbstractSocket::SocketState socketState)
+void MyServer::onSocketStateChanged(QAbstractSocket::SocketState socketState)
 {
     if (socketState == QAbstractSocket::UnconnectedState)
     {
@@ -64,14 +47,21 @@ void MainWindow::onSocketStateChanged(QAbstractSocket::SocketState socketState)
     }
 }
 
-void MainWindow::onReadyRead()
+void MyServer::onReadyRead()
 {
     QTcpSocket* sender = static_cast<QTcpSocket*>(QObject::sender());
     QByteArray datas = sender->readAll();
+
     for (QTcpSocket* socket : _sockets) {
         if (socket == sender) {
-            // socket->write(QByteArray::fromStdString(sender->peerAddress().toString().toStdString() + ": " + datas.toStdString()));
             socket->write(_dataHanler.getReport(datas));
         }
+    }
+
+    if (_database.isOpen()) {
+        QString queryString = QString("insert into statistics values (datetime('now', 'localtime'), '%1', %2);").arg(sender->peerAddress().toString()).arg(datas.size());
+        qDebug() << queryString;
+
+        _database.exec(queryString);
     }
 }
