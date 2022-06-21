@@ -2,11 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QWidget>
-#include <QTcpSocket>
+#include <QAbstractSocket>
 
-#include <QLineEdit>
-#include <QPushButton>
-#include <QTextEdit>
+QT_FORWARD_DECLARE_CLASS(QLineEdit)
+QT_FORWARD_DECLARE_CLASS(QPushButton)
+QT_FORWARD_DECLARE_CLASS(QTcpSocket)
+QT_FORWARD_DECLARE_CLASS(QTextEdit)
 
 class MainWindow : public QWidget
 {
@@ -18,14 +19,18 @@ public:
 
 public slots:
     void onReadyRead();
-    void onButtonClicked();
+    void onConnectButtonClicked();
+    void onHandleButtonClicked();
+    void onReportButtonClicked();
+    void onSocketStateChanged(QAbstractSocket::SocketState socketState);
 
 private:
     QLineEdit* _lineEdit;
-    QPushButton* _button;
+    QPushButton* _connectButton;
+    QPushButton* _handleButton;
+    QPushButton* _reportButton;
     QTextEdit* _textEdit;
-
-    QTcpSocket  _socket;
+    QTcpSocket*  _socket;
 };
 
 #endif // MAINWINDOW_H
