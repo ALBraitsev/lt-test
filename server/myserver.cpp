@@ -57,6 +57,7 @@ void MyServer::onReadyRead()
         {
             if (datas == "Get Statistics")
             {
+                // отправка отчёта о работе сервера
                 QSqlQuery query = _database.exec("select * from statistics;");
                 while (query.next()) {
                     QString time = query.value(0).toString();
@@ -71,16 +72,17 @@ void MyServer::onReadyRead()
             }
             else
             {
+                // обработка и отправка данных
                 socket->write(_dataHanler.getReport(datas));
+                // регистрация работы в базе sqlite
+                if (_database.isOpen())
+                {
+                    QString queryString = QString("insert into statistics values (datetime('now', 'localtime'), '%1', %2);").arg(sender->peerAddress().toString()).arg(datas.size());
+                    qDebug() << queryString;
+
+                    _database.exec(queryString);
+                }
             }
         }
-    }
-
-    if (_database.isOpen())
-    {
-        QString queryString = QString("insert into statistics values (datetime('now', 'localtime'), '%1', %2);").arg(sender->peerAddress().toString()).arg(datas.size());
-        qDebug() << queryString;
-
-        _database.exec(queryString);
     }
 }
