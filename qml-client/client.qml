@@ -2,6 +2,7 @@ import QtQuick 2.2
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.11
+import QtQuick.Dialogs 1.0
 import com.lt.client 1
 
 Window {
@@ -15,23 +16,37 @@ Window {
         id: model
     }
 
+    FileDialog {
+        id: fileDialog
+        title: "Please choose a file"
+        folder: shortcuts.home
+        onAccepted: {
+            console.log("You chose: " + fileDialog.fileUrls)
+            model.handleFile(fileDialog.fileUrls)
+        }
+        onRejected: {
+            console.log("Canceled")
+        }
+    }
+
     ColumnLayout {
         height: root.height
         width: root.width
         RowLayout {
             TextField {
+                id: text
             }
             Button {
                 text: "Connect to..."
-                onClicked: model.connectTo()
+                onClicked: model.connectTo(text.text)
             }
             Button {
                 text: "Handle file..."
-                onClicked: model.handleFile()
+                onClicked: fileDialog.open()
             }
             Button {
                 text: "Get Report"
-                onClicked: model.getReport()
+                onClicked: model.getStatistics()
             }
         }   
         RowLayout {
@@ -39,6 +54,7 @@ Window {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 TextArea {
+                    objectName: "textArea"
                 }
             }
         }

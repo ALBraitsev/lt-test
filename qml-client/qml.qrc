@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/res">
         <file>client.qml</file>
-        <file>Cell.qml</file>
     </qresource>
 </RCC>
