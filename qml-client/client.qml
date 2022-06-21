@@ -2,6 +2,7 @@ import QtQuick 2.2
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.11
+import com.lt.client 1
 
 Window {
     id: root
@@ -10,6 +11,10 @@ Window {
     width: 640
     height: 480
 
+    Model {
+        id: model
+    }
+
     ColumnLayout {
         height: root.height
         width: root.width
@@ -17,8 +22,16 @@ Window {
             TextField {
             }
             Button {
-                text: "Select File"
-                onClicked: model.submit()
+                text: "Connect to..."
+                onClicked: model.connectTo()
+            }
+            Button {
+                text: "Handle file..."
+                onClicked: model.handleFile()
+            }
+            Button {
+                text: "Get Report"
+                onClicked: model.getReport()
             }
         }   
         RowLayout {

@@ -1,17 +1,13 @@
 #include <QGuiApplication>
-// #include <QQuickView>
 #include <QQmlApplicationEngine>
+#include "Model.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    // QQuickView *view = new QQuickView;
-    // view->setSource(QUrl::fromLocalFile(":/res/client.qml"));
-    // view->show();
-
+    qmlRegisterType<Model>("com.lt.client", 1, 0, "Model");
     QQmlApplicationEngine engine(":/res/client.qml");
-
 
     return app.exec();
 }

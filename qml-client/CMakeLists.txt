@@ -17,6 +17,7 @@ find_package(Qt5 COMPONENTS Core Network Widgets Quick Qml REQUIRED)
 
 add_executable(${PROJECT_NAME}
     main.cpp
+    Model.cpp
     qml.qrc
 )
 
