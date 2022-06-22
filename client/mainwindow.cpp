@@ -45,14 +45,12 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
         if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
              qDebug() << address.toString();
     }
-
     _socket->connectToHost(QHostAddress("127.0.0.1"), 4242);
-    // _socket->connectToHost(QHostAddress("192.168.0.101"), 4242);
 
     connect(_socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(_socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
  
-    setWindowTitle("TCP-client");
+    setWindowTitle("lt-client");
 }
 
 MainWindow::~MainWindow()
@@ -65,17 +63,17 @@ void MainWindow::onSocketStateChanged(QAbstractSocket::SocketState socketState)
     switch(socketState)
     {
     case QAbstractSocket::UnconnectedState:
-        setWindowTitle("TCP-client (Unconnected)");
+        setWindowTitle("lt-client (Unconnected)");
         _handleButton->setDisabled(true);
         _reportButton->setDisabled(true);
         break;
     case QAbstractSocket::ConnectingState:
-        setWindowTitle("TCP-client (Connecting...)");
+        setWindowTitle("lt-client (Connecting...)");
         _handleButton->setDisabled(false);
         _reportButton->setDisabled(false);
         break;
     case QAbstractSocket::ConnectedState:
-        setWindowTitle(QString("TCP-client (Connected to %1)").arg(_socket->peerAddress().toString()));
+        setWindowTitle(QString("lt-client (Connected to %1)").arg(_socket->peerAddress().toString()));
         break;
     default:
         break;

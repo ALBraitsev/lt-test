@@ -1,8 +1,9 @@
 #include "myserver.h"
 
+#include <QAbstractSocket>
 #include <QDebug>
 #include <QHostAddress>
-#include <QAbstractSocket>
+#include <QNetworkInterface>
 #include <QSqlQuery>
 
 MyServer::MyServer(QObject *parent) : QObject(parent),
@@ -17,7 +18,11 @@ MyServer::MyServer(QObject *parent) : QObject(parent),
     _database.open();
     _database.exec("create table statistics(time text, address text, bytes integer);");
 
-    qDebug() << "TCP-server running";
+    const QHostAddress &localhost = QHostAddress(QHostAddress::LocalHost);
+    for (const QHostAddress &address: QNetworkInterface::allAddresses()) {
+        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
+            qDebug() << "TCP-server running " << address.toString();
+    }
 }
 
 MyServer::~MyServer()

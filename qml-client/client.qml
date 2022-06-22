@@ -39,14 +39,17 @@ Window {
             Button {
                 text: "Connect to..."
                 onClicked: model.connectTo(text.text)
+                objectName: "connectToButton"
             }
             Button {
                 text: "Handle file..."
                 onClicked: fileDialog.open()
+                objectName: "handleFileButton"
             }
             Button {
                 text: "Get Report"
                 onClicked: model.getStatistics()
+                objectName: "getReportButton"
             }
         }   
         RowLayout {

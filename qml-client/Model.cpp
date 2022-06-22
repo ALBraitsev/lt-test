@@ -19,8 +19,12 @@ Model::Model(QObject *parent) : QObject(parent)
 {
     _socket = new QTcpSocket(this);
 
+    const QHostAddress &localhost = QHostAddress(QHostAddress::LocalHost);
+    for (const QHostAddress &address: QNetworkInterface::allAddresses()) {
+        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
+             qDebug() << address.toString();
+    }
     _socket->connectToHost(QHostAddress("127.0.0.1"), 4242);
-    // _socket->connectToHost(QHostAddress("192.168.0.101"), 4242);
 
     connect(_socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(_socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
@@ -36,17 +40,27 @@ void Model::onSocketStateChanged(QAbstractSocket::SocketState socketState)
     switch(socketState)
     {
     case QAbstractSocket::UnconnectedState:
-        topLevel->setProperty("title", "TCP-client (Unconnected)");
-        // _handleButton->setDisabled(true);
-        // _reportButton->setDisabled(true);
+        topLevel->setProperty("title", "lt-glm-client (Unconnected)");
+
+        if (QObject* button = topLevel->findChild<QObject*>("handleFileButton")) 
+            button->setProperty("enabled", false);
+
+        if (QObject* button = topLevel->findChild<QObject*>("getReportButton")) 
+            button->setProperty("enabled", false);
+
         break;
     case QAbstractSocket::ConnectingState:
-        topLevel->setProperty("title", "TCP-client (Connecting...)");
-        // _handleButton->setDisabled(false);
-        // _reportButton->setDisabled(false);
+        topLevel->setProperty("title", "lt-glm-client (Connecting...)");
+
+        if (QObject* button = topLevel->findChild<QObject*>("handleFileButton")) 
+            button->setProperty("enabled", true);
+
+        if (QObject* button = topLevel->findChild<QObject*>("getReportButton")) 
+            button->setProperty("enabled", true);
+
         break;
     case QAbstractSocket::ConnectedState:
-        topLevel->setProperty("title", QString("TCP-client (Connected to %1)").arg(_socket->peerAddress().toString()));
+        topLevel->setProperty("title", QString("lt-glm-client (Connected to %1)").arg(_socket->peerAddress().toString()));
         break;
     default:
         break;
@@ -57,12 +71,10 @@ void Model::onReadyRead()
 {
     QByteArray datas = _socket->readAll();
 
-    QObject *textArea = topLevel->findChild<QObject*>("textArea");
-    if (textArea) 
+    if (QObject *textArea = topLevel->findChild<QObject*>("textArea")) 
     {
         textArea->setProperty("text", textArea->property("text").toString() + QString(datas.data()));
     }
-
 }
 
 void Model::connectTo(QString ip) 
