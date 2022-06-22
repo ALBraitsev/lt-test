@@ -69,11 +69,13 @@ void MainWindow::onSocketStateChanged(QAbstractSocket::SocketState socketState)
         break;
     case QAbstractSocket::ConnectingState:
         setWindowTitle("lt-client (Connecting...)");
-        _handleButton->setDisabled(false);
-        _reportButton->setDisabled(false);
+        _handleButton->setDisabled(true);
+        _reportButton->setDisabled(true);
         break;
     case QAbstractSocket::ConnectedState:
         setWindowTitle(QString("lt-client (Connected to %1)").arg(_socket->peerAddress().toString()));
+        _handleButton->setDisabled(false);
+        _reportButton->setDisabled(false);
         break;
     default:
         break;

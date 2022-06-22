@@ -49,8 +49,20 @@ void Model::onSocketStateChanged(QAbstractSocket::SocketState socketState)
             button->setProperty("enabled", false);
 
         break;
+
     case QAbstractSocket::ConnectingState:
         topLevel->setProperty("title", "lt-glm-client (Connecting...)");
+
+        if (QObject* button = topLevel->findChild<QObject*>("handleFileButton")) 
+            button->setProperty("enabled", false);
+
+        if (QObject* button = topLevel->findChild<QObject*>("getReportButton")) 
+            button->setProperty("enabled", false);
+
+        break;
+
+    case QAbstractSocket::ConnectedState:
+        topLevel->setProperty("title", QString("lt-glm-client (Connected to %1)").arg(_socket->peerAddress().toString()));
 
         if (QObject* button = topLevel->findChild<QObject*>("handleFileButton")) 
             button->setProperty("enabled", true);
@@ -59,9 +71,7 @@ void Model::onSocketStateChanged(QAbstractSocket::SocketState socketState)
             button->setProperty("enabled", true);
 
         break;
-    case QAbstractSocket::ConnectedState:
-        topLevel->setProperty("title", QString("lt-glm-client (Connected to %1)").arg(_socket->peerAddress().toString()));
-        break;
+        
     default:
         break;
     }

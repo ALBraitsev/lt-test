@@ -64,21 +64,32 @@ void MyServer::onReadyRead()
             {
                 // отправка отчёта о работе сервера
                 QSqlQuery query = _database.exec("select * from statistics;");
-                while (query.next()) {
-                    QString time = query.value(0).toString();
-                    QString address = query.value(1).toString();
-                    int bytes = query.value(2).toInt();
+                socket->write(QByteArray("\ntime, address, bytes\n"));
+                size_t rc = 0;
+                if (query.exec())
+                {
+                    while (query.next()) 
+                    {
+                        QString time = query.value(0).toString();
+                        QString address = query.value(1).toString();
+                        int bytes = query.value(2).toInt();
 
-                    QString record = QString("%1, %2, %3\n").arg(time).arg(address).arg(bytes);
+                        QString record = QString("%1, %2, %3\n").arg(time).arg(address).arg(bytes);
 
-                    qDebug() << record;
-                    socket->write(QByteArray(record.toStdString().c_str()));
+                        qDebug() << record;
+                        socket->write(QByteArray(record.toStdString().c_str()));
+
+                        rc++;
+                    }
                 }
+                socket->write(QByteArray(QString("Total record(s) %1\n").arg(rc).toStdString().c_str()));
             }
             else
             {
-                // обработка и отправка данных
+                // обработка данных и отправка результатов
+                socket->write("\n");
                 socket->write(_dataHanler.getReport(datas));
+                
                 // регистрация работы в базе sqlite
                 if (_database.isOpen())
                 {
